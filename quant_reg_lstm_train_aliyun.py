@@ -11,6 +11,9 @@ from concurrent.futures import ProcessPoolExecutor, wait
 from tqdm import tqdm
 import pickle
 
+import os
+
+os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -149,11 +152,11 @@ def train():
     print("pred x shape {}, append x shape {}".format(pred_data_x.shape, pred_data_ext.shape))
 
     print("data loaded")
-    train_data_x = torch.tensor(train_data_x, dtype=torch.float32).to(device)
-    train_data_y = torch.tensor(train_data_y, dtype=torch.float32).to(device)
-    test_data_x = torch.tensor(test_data_x, dtype=torch.float32).to(device)
-    test_data_y = torch.tensor(test_data_y, dtype=torch.float32).to(device)
-    pred_data_x = torch.tensor(pred_data_x, dtype=torch.float32).to(device)
+    train_data_x = torch.tensor(train_data_x, dtype=torch.float32)
+    train_data_y = torch.tensor(train_data_y, dtype=torch.float32)
+    test_data_x = torch.tensor(test_data_x, dtype=torch.float32)
+    test_data_y = torch.tensor(test_data_y, dtype=torch.float32)
+    pred_data_x = torch.tensor(pred_data_x, dtype=torch.float32)
     train_dataset = TensorDataset(train_data_x, train_data_y)
     val_dataset = TensorDataset(test_data_x, test_data_y)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=1, drop_last=True)
@@ -177,6 +180,8 @@ def train():
             model.train(True)
             optimizer.zero_grad()
             inputs, targets = data
+            inputs = inputs.to(device)
+            targets = targets.to(device)
             # print("input shape {}, target shape {}, h0 shape {}, h1 shape {}".format(inputs.shape, targets.shape, h[0].shape, h[1].shape))
             h = tuple([each.data for each in h])
             outputs, _ = model(inputs, h)
@@ -198,6 +203,8 @@ def train():
             val_h = model.init_hidden(batch_size)
             for i, vdata in enumerate(val_loader):
                 vinputs, vlabels = vdata
+                vinputs = vinputs.to(device)
+                vlabels = vlabels.to(device)
                 val_h = tuple([each.data for each in val_h])
                 voutputs, _ = model(vinputs, val_h)
                 vloss = loss_fn(voutputs, vlabels)
@@ -208,14 +215,16 @@ def train():
     run_id = uuid.uuid1().hex
     model_name = "lstm"
     print("saving validation results")
+    test_data_x = test_data_x.to(device)
     pred, _ = model(test_data_x, model.init_hidden(test_data_x.shape[0]))
-    test_data_ext["score"] = pred.squeeze().detach().numpy()
+    test_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
 
     print("now make predictions")
+    pred_data_x = pred_data_x.to(device)
     pred_h = model.init_hidden(pred_data_x.shape[0])
     pred, _ = model(pred_data_x, pred_h)
     print("pred shape {}".format(pred.shape))
-    pred_data_ext["score"] = pred.squeeze().detach().numpy()
+    pred_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
     print("now find the ups")
     pred_data_ext.sort_values(by=["score"], inplace=True, ascending=False)
     print(pred_data_ext.head(20).to_string())
