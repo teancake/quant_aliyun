@@ -101,8 +101,8 @@ def get_sequential_data(df, sequence_length=1, number_of_sequences=None):
         if len(futures) % POOL_SIZE == POOL_SIZE - 1:
             # the main purpose of waiting is to make tqdm correct.
             wait(futures)
-        # if symbol > "000070":
-        #     break
+        if symbol > "000070":
+            break
 
     wait(futures)
 
@@ -149,18 +149,18 @@ def train():
     print("pred x shape {}, append x shape {}".format(pred_data_x.shape, pred_data_ext.shape))
 
     print("data loaded")
-    train_data_x = torch.tensor(train_data_x, dtype=torch.float32)
-    train_data_y = torch.tensor(train_data_y, dtype=torch.float32)
-    test_data_x = torch.tensor(test_data_x, dtype=torch.float32)
-    test_data_y = torch.tensor(test_data_y, dtype=torch.float32)
-    pred_data_x = torch.tensor(pred_data_x, dtype=torch.float32)
+    train_data_x = torch.tensor(train_data_x, dtype=torch.float32).to(device)
+    train_data_y = torch.tensor(train_data_y, dtype=torch.float32).to(device)
+    test_data_x = torch.tensor(test_data_x, dtype=torch.float32).to(device)
+    test_data_y = torch.tensor(test_data_y, dtype=torch.float32).to(device)
+    pred_data_x = torch.tensor(pred_data_x, dtype=torch.float32).to(device)
     train_dataset = TensorDataset(train_data_x, train_data_y)
     val_dataset = TensorDataset(test_data_x, test_data_y)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=1, drop_last=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=1, drop_last=True)
 
     model = LSTM(input_size=train_data_x.shape[-1], n_layers=5, drop_prob=0.8, sequence_length=sequence_length)
-
+    model.to(device)
     loss_fn = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     print("model created {}".format(model))
