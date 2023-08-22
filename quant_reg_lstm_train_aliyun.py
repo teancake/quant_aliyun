@@ -127,26 +127,18 @@ def get_sequential_data(df, sequence_length=1, number_of_sequences=None):
 
 
 
-def train():
+def train(args):
     sequence_length = 15
     batch_size = 1001
-    learning_rate = 1e-2
     epoch_num = 5
-    dataset = load_data_from_file("/mnt/data/quant_reg_data.pkl")
-    train_data, test_data, pred_data = dataset
 
-    train_data = train_data[train_data["日期"] > train_data["日期"].max() - timedelta(days=365)]
-    print("train_data min date {}, max date {}".format(train_data["日期"].min(), train_data["日期"].max()))
-    print("test_data min date {}, max date {}".format(test_data["日期"].min(), test_data["日期"].max()))
+    learning_rate = args.lr
+    n_layers = args.n_layers
+    drop_prob = args.drop_prob
+    hidden_dim = args.hidden_dim
 
-
-    print("convert training data into sequences.")
-    train_data_x, train_data_y, _ = get_sequential_data(train_data, sequence_length)
-    print("convert testing data into sequences.")
-    test_data_x, test_data_y, test_data_ext = get_sequential_data(test_data, sequence_length)
-    print("convert prediction data into sequences")
-    pred_data_x, _, pred_data_ext = get_sequential_data(pred_data, sequence_length, number_of_sequences=1)
-
+    sequential_data = load_data_from_file("/mnt/data/quant_reg_sequential_data.pkl")
+    train_data_x, train_data_y, test_data_x, test_data_y, test_data_ext, pred_data_x, pred_data_ext = sequential_data
     print("train x shape {}, train y shape {}, train y mean {}, variance {}".format(train_data_x.shape, train_data_y.shape, np.mean(train_data_y), np.var(train_data_y)))
     print("test x shape {}, test y shape {}, test y mean {}, variance {}".format(test_data_x.shape, test_data_y.shape, np.mean(test_data_y), np.var(test_data_y)))
     print("pred x shape {}, append x shape {}".format(pred_data_x.shape, pred_data_ext.shape))
@@ -162,7 +154,7 @@ def train():
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=1, drop_last=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=1, drop_last=True)
 
-    model = LSTM(input_size=train_data_x.shape[-1], n_layers=5, drop_prob=0.8, sequence_length=sequence_length)
+    model = LSTM(input_size=train_data_x.shape[-1], n_layers=n_layers, drop_prob=drop_prob, sequence_length=sequence_length, hidden_dim=hidden_dim)
     model.to(device)
     loss_fn = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -232,6 +224,17 @@ def train():
 
 
 if __name__ == "__main__":
-    train()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--batch_size', type=int, default=1001, help='batch size')
+    parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
+    parser.add_argument('--n_layers', type=int, default=1, help='lstm number of layers')
+    parser.add_argument('--drop_prob', type=float, default=0.2, help='lstm dropout probability')
+    parser.add_argument('--hidden_dim', type=int, default=512, help='lstm hidden variable dimension')
+
+    args = parser.parse_args()
+    print("arguments {}".format(args))
+
+    train(args)
 
 
