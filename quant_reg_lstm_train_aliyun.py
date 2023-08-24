@@ -25,7 +25,7 @@ class LSTM(nn.Module):
         self.n_layers = n_layers
         self.hidden_dim = hidden_dim
         self.bn_in = nn.BatchNorm1d(sequence_length)
-        self.bn_out = nn.BatchNorm1d(hidden_dim)
+        # self.bn_out = nn.BatchNorm1d(hidden_dim)
 
 
         self.lstm = nn.LSTM(input_size, hidden_dim, n_layers, dropout=drop_prob, batch_first=True)
@@ -42,7 +42,7 @@ class LSTM(nn.Module):
         # print("lstm_out size {}, hidden 0 size {}, hidden 1 size {}".format(lstm_out.shape, hidden[0].shape, hidden[1].shape))
 
         lstm_out = lstm_out.contiguous().view(-1, self.hidden_dim)
-        lstm_out = self.bn_out(lstm_out)
+        # lstm_out = self.bn_out(lstm_out)
         # print("lstm_out before drop out {}".format(lstm_out.shape))
         out = self.dropout(lstm_out)
         # print("out before fc {}".format(out.shape))
@@ -129,9 +129,7 @@ def get_sequential_data(df, sequence_length=1, number_of_sequences=None):
 
 def train(args):
     sequence_length = 15
-    batch_size = 1001
-    epoch_num = 5
-
+    batch_size = args.batch_size
     learning_rate = args.lr
     n_layers = args.n_layers
     drop_prob = args.drop_prob
