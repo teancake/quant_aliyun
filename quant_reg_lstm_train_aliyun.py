@@ -136,6 +136,7 @@ def train(args):
     n_layers = args.n_layers
     drop_prob = args.drop_prob
     hidden_dim = args.hidden_dim
+    epoch_num = args.epoch_num
 
     sequential_data = load_data_from_file("/mnt/data/quant_reg_sequential_data.pkl")
     train_data_x, train_data_y, test_data_x, test_data_y, test_data_ext, pred_data_x, pred_data_ext = sequential_data
@@ -245,6 +246,7 @@ def train(args):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
+    parser.add_argument('--epoch_num', type=int, default=5, help='epoch num')
     parser.add_argument('--batch_size', type=int, default=1001, help='batch size')
     parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
     parser.add_argument('--n_layers', type=int, default=1, help='lstm number of layers')
