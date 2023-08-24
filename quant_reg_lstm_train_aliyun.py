@@ -49,8 +49,8 @@ class LSTM(nn.Module):
         out = self.fc(lstm_out)
         # print("out after fc {}".format(out.shape))
 
-        out = out.view(batch_size, -1)
-        out = out[:, -1]
+        # out = out.view(batch_size, -1)
+        # out = out[:, -1]
         # print("out after -1 {}".format(out.shape))
         return out, hidden
 
@@ -202,49 +202,49 @@ def train(args):
                 vloss = loss_fn(voutputs, vlabels)
                 val_losses.append(vloss.item())
         print("epoch {} train loss {}, val loss {}".format(epoch + 1, np.mean(train_losses), np.mean(val_losses)))
-
-    run_id = uuid.uuid1().hex
-    model_name = "lstm"
-    print("saving validation results")
-    test_data_x = test_data_x.to(device)
-    pred, _ = model(test_data_x, model.init_hidden(test_data_x.shape[0]))
-    test_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
-
-    print("now make predictions")
-    pred_data_x = pred_data_x.to(device)
-    pred_h = model.init_hidden(pred_data_x.shape[0])
-    pred, _ = model(pred_data_x, pred_h)
-    print("pred x {}".format(pred_data_x))
-    print("pred shape {}, pred {}".format(pred.shape, pred))
-    pred_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
-    pred_data_disp = pred_data_ext.copy()
-    print("now find the ups")
-    pred_data_disp.sort_values(by=["score"], inplace=True, ascending=False)
-    print(pred_data_disp.head(20).to_string())
-
-    print("now make predictions again")
-    pred_data_x = pred_data_x.to(device)
-    pred_h = model.init_hidden(pred_data_x.shape[0])
-    pred, _ = model(pred_data_x, pred_h)
-    print("pred x {}".format(pred_data_x))
-    print("pred shape {}, pred {}".format(pred.shape, pred))
-    pred_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
-    pred_data_disp = pred_data_ext.copy()
-    print("now find the ups")
-    pred_data_disp.sort_values(by=["score"], inplace=True, ascending=False)
-    print(pred_data_disp.head(20).to_string())
-
-    print("now make predictions for the third time")
-    pred_data_x = pred_data_x.to(device)
-    pred_h = model.init_hidden(pred_data_x.shape[0])
-    pred, _ = model(pred_data_x, pred_h)
-    print("pred x {}".format(pred_data_x))
-    print("pred shape {}, pred {}".format(pred.shape, pred))
-    pred_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
-    pred_data_disp = pred_data_ext.copy()
-    print("now find the ups")
-    pred_data_disp.sort_values(by=["score"], inplace=True, ascending=False)
-    print(pred_data_disp.head(20).to_string())
+    #
+    # run_id = uuid.uuid1().hex
+    # model_name = "lstm"
+    # print("saving validation results")
+    # test_data_x = test_data_x.to(device)
+    # pred, _ = model(test_data_x, model.init_hidden(test_data_x.shape[0]))
+    # test_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
+    #
+    # print("now make predictions")
+    # pred_data_x = pred_data_x.to(device)
+    # pred_h = model.init_hidden(pred_data_x.shape[0])
+    # pred, _ = model(pred_data_x, pred_h)
+    # print("pred x {}".format(pred_data_x))
+    # print("pred shape {}, pred {}".format(pred.shape, pred))
+    # pred_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
+    # pred_data_disp = pred_data_ext.copy()
+    # print("now find the ups")
+    # pred_data_disp.sort_values(by=["score"], inplace=True, ascending=False)
+    # print(pred_data_disp.head(20).to_string())
+    #
+    # print("now make predictions again")
+    # pred_data_x = pred_data_x.to(device)
+    # pred_h = model.init_hidden(pred_data_x.shape[0])
+    # pred, _ = model(pred_data_x, pred_h)
+    # print("pred x {}".format(pred_data_x))
+    # print("pred shape {}, pred {}".format(pred.shape, pred))
+    # pred_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
+    # pred_data_disp = pred_data_ext.copy()
+    # print("now find the ups")
+    # pred_data_disp.sort_values(by=["score"], inplace=True, ascending=False)
+    # print(pred_data_disp.head(20).to_string())
+    #
+    # print("now make predictions for the third time")
+    # pred_data_x = pred_data_x.to(device)
+    # pred_h = model.init_hidden(pred_data_x.shape[0])
+    # pred, _ = model(pred_data_x, pred_h)
+    # print("pred x {}".format(pred_data_x))
+    # print("pred shape {}, pred {}".format(pred.shape, pred))
+    # pred_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
+    # pred_data_disp = pred_data_ext.copy()
+    # print("now find the ups")
+    # pred_data_disp.sort_values(by=["score"], inplace=True, ascending=False)
+    # print(pred_data_disp.head(20).to_string())
 
 
 if __name__ == "__main__":
