@@ -169,10 +169,9 @@ def train(args):
         print("Starting epoch {}".format(epoch + 1))
 
         running_loss = 0.0
+        model.train(True)
+        optimizer.zero_grad()
         for batch_num, data in enumerate(train_loader):
-
-            model.train(True)
-            optimizer.zero_grad()
             inputs, targets = data
             inputs = inputs.to(device)
             targets = targets.to(device)
@@ -180,7 +179,6 @@ def train(args):
             h = tuple([each.data for each in h])
             outputs, h = model(inputs, h)
             # print("model outputs shape {}".format(outputs.shape))
-
             loss = loss_fn(outputs, targets)
             loss.backward()
             optimizer.step()
