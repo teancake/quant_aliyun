@@ -24,29 +24,29 @@ class LSTM(nn.Module):
         self.output_size = output_size
         self.n_layers = n_layers
         self.hidden_dim = hidden_dim
-        self.bn_in = nn.BatchNorm1d(sequence_length)
+        # self.bn_in = nn.BatchNorm1d(sequence_length)
         # self.bn_out = nn.BatchNorm1d(hidden_dim)
 
 
         self.lstm = nn.LSTM(input_size, hidden_dim, n_layers, dropout=drop_prob, batch_first=True)
-        self.dropout = nn.Dropout(drop_prob)
+        # self.dropout = nn.Dropout(drop_prob)
         self.fc = nn.Linear(hidden_dim, output_size)
 
     def forward(self, x, hidden):
         # print("x size {}".format(x.shape))
         batch_size = x.size(0)
         # print("x before bn {}".format(x))
-        x = self.bn_in(x)
+        # x = self.bn_in(x)
         # print("x after bn {}".format(x))
         lstm_out, hidden = self.lstm(x, hidden)
         # print("lstm_out size {}, hidden 0 size {}, hidden 1 size {}".format(lstm_out.shape, hidden[0].shape, hidden[1].shape))
 
-        lstm_out = lstm_out.contiguous().view(-1, self.hidden_dim)
+        # lstm_out = lstm_out.contiguous().view(-1, self.hidden_dim)
         # lstm_out = self.bn_out(lstm_out)
         # print("lstm_out before drop out {}".format(lstm_out.shape))
-        out = self.dropout(lstm_out)
+        # out = self.dropout(lstm_out)
         # print("out before fc {}".format(out.shape))
-        out = self.fc(out)
+        out = self.fc(lstm_out)
         # print("out after fc {}".format(out.shape))
 
         out = out.view(batch_size, -1)
