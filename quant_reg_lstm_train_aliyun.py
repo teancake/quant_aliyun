@@ -168,7 +168,7 @@ def train(args):
     for epoch in range(0, epoch_num):
         print("Starting epoch {}".format(epoch + 1))
 
-        running_loss = 0.0
+        train_losses = []
         model.train(True)
         for batch_num, data in enumerate(train_loader):
             inputs, targets = data
@@ -184,14 +184,12 @@ def train(args):
             optimizer.zero_grad()  # reset gradient
             loss.backward()
             optimizer.step()
-            running_loss += loss.item()
+            train_losses.append(loss.item())
             if batch_num % 5 == 0:
-                avg_loss = running_loss / (batch_num + 1)
-                print("Loss after batch {}: {}".format(batch_num, avg_loss))
-        avg_loss = running_loss / (batch_num + 1)
+                print("Loss after batch {}: {}".format(batch_num, np.mean(train_losses)))
         print("Training process in epoch {} has finished. Evaluation started.".format(epoch + 1))
 
-        running_vloss = 0.0
+        val_losses = []
         model.eval()
         with torch.no_grad():
             val_h = model.init_hidden(batch_size)
@@ -202,9 +200,8 @@ def train(args):
                 val_h = tuple([each.data for each in val_h])
                 voutputs, val_h = model(vinputs, val_h)
                 vloss = loss_fn(voutputs, vlabels)
-                running_vloss += vloss
-        avg_vloss = running_vloss / (i + 1)
-        print("epoch {} LOSS train {} val {}".format(epoch + 1, avg_loss, avg_vloss))
+                val_losses.append(vloss.item())
+        print("epoch {} train loss {}, val loss {}".format(epoch + 1, np.mean(train_losses), np.mean(val_losses)))
 
     run_id = uuid.uuid1().hex
     model_name = "lstm"
