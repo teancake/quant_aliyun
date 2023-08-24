@@ -218,9 +218,10 @@ def train(args):
     pred, _ = model(pred_data_x, pred_h)
     print("pred shape {}".format(pred.shape))
     pred_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
+    pred_data_disp = pred_data_x.copy()
     print("now find the ups")
-    pred_data_ext.sort_values(by=["score"], inplace=True, ascending=False)
-    print(pred_data_ext.head(20).to_string())
+    pred_data_disp.sort_values(by=["score"], inplace=True, ascending=False)
+    print(pred_data_disp.head(20).to_string())
 
     print("now make predictions again")
     pred_data_x = pred_data_x.to(device)
@@ -228,9 +229,10 @@ def train(args):
     pred, _ = model(pred_data_x, pred_h)
     print("pred shape {}".format(pred.shape))
     pred_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
+    pred_data_disp = pred_data_x.copy()
     print("now find the ups")
-    pred_data_ext.sort_values(by=["score"], inplace=True, ascending=False)
-    print(pred_data_ext.head(20).to_string())
+    pred_data_disp.sort_values(by=["score"], inplace=True, ascending=False)
+    print(pred_data_disp.head(20).to_string())
 
     print("now make predictions for the third time")
     pred_data_x = pred_data_x.to(device)
@@ -238,9 +240,10 @@ def train(args):
     pred, _ = model(pred_data_x, pred_h)
     print("pred shape {}".format(pred.shape))
     pred_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
+    pred_data_disp = pred_data_x.copy()
     print("now find the ups")
-    pred_data_ext.sort_values(by=["score"], inplace=True, ascending=False)
-    print(pred_data_ext.head(20).to_string())
+    pred_data_disp.sort_values(by=["score"], inplace=True, ascending=False)
+    print(pred_data_disp.head(20).to_string())
 
 
 if __name__ == "__main__":
