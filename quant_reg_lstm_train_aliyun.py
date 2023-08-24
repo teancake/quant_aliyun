@@ -221,6 +221,25 @@ def train(args):
     pred_data_ext.sort_values(by=["score"], inplace=True, ascending=False)
     print(pred_data_ext.head(20).to_string())
 
+    print("now make predictions again")
+    pred_data_x = pred_data_x.to(device)
+    pred_h = model.init_hidden(pred_data_x.shape[0])
+    pred, _ = model(pred_data_x, pred_h)
+    print("pred shape {}".format(pred.shape))
+    pred_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
+    print("now find the ups")
+    pred_data_ext.sort_values(by=["score"], inplace=True, ascending=False)
+    print(pred_data_ext.head(20).to_string())
+
+    print("now make predictions for the third time")
+    pred_data_x = pred_data_x.to(device)
+    pred_h = model.init_hidden(pred_data_x.shape[0])
+    pred, _ = model(pred_data_x, pred_h)
+    print("pred shape {}".format(pred.shape))
+    pred_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
+    print("now find the ups")
+    pred_data_ext.sort_values(by=["score"], inplace=True, ascending=False)
+    print(pred_data_ext.head(20).to_string())
 
 
 if __name__ == "__main__":
