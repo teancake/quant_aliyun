@@ -170,7 +170,6 @@ def train(args):
 
         running_loss = 0.0
         model.train(True)
-        optimizer.zero_grad()
         for batch_num, data in enumerate(train_loader):
             inputs, targets = data
             inputs = inputs.to(device)
@@ -180,6 +179,9 @@ def train(args):
             outputs, h = model(inputs, h)
             # print("model outputs shape {}".format(outputs.shape))
             loss = loss_fn(outputs, targets)
+
+            # 2. backward
+            optimizer.zero_grad()  # reset gradient
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
