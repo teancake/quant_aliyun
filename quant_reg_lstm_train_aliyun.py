@@ -141,12 +141,12 @@ def train(args):
     sequential_data = load_data_from_file("/mnt/data/quant_reg_sequential_data.pkl")
     train_data_x, train_data_y, test_data_x, test_data_y, test_data_ext, pred_data_x, pred_data_ext = sequential_data
 
-
+    pred_data_x = pred_data_x[0:2,:,:]
+    pred_data_ext = pred_data_ext.head(2)
     print("train x shape {}, train y shape {}, train y mean {}, variance {}".format(train_data_x.shape, train_data_y.shape, np.mean(train_data_y), np.var(train_data_y)))
     print("test x shape {}, test y shape {}, test y mean {}, variance {}".format(test_data_x.shape, test_data_y.shape, np.mean(test_data_y), np.var(test_data_y)))
     print("pred x shape {}, append x shape {}".format(pred_data_x.shape, pred_data_ext.shape))
-    pred_data_x = pred_data_x[0,:,:]
-    pred_data_ext = pred_data_ext.head(1)
+
     print("data loaded")
     train_data_x = torch.tensor(train_data_x, dtype=torch.float32)
     train_data_y = torch.tensor(train_data_y, dtype=torch.float32)
