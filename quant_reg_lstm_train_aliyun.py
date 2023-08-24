@@ -140,10 +140,13 @@ def train(args):
 
     sequential_data = load_data_from_file("/mnt/data/quant_reg_sequential_data.pkl")
     train_data_x, train_data_y, test_data_x, test_data_y, test_data_ext, pred_data_x, pred_data_ext = sequential_data
+
+
     print("train x shape {}, train y shape {}, train y mean {}, variance {}".format(train_data_x.shape, train_data_y.shape, np.mean(train_data_y), np.var(train_data_y)))
     print("test x shape {}, test y shape {}, test y mean {}, variance {}".format(test_data_x.shape, test_data_y.shape, np.mean(test_data_y), np.var(test_data_y)))
     print("pred x shape {}, append x shape {}".format(pred_data_x.shape, pred_data_ext.shape))
-
+    pred_data_x = pred_data_x[0,:,:]
+    pred_data_ext = pred_data_ext.head(1)
     print("data loaded")
     train_data_x = torch.tensor(train_data_x, dtype=torch.float32)
     train_data_y = torch.tensor(train_data_y, dtype=torch.float32)
@@ -216,7 +219,8 @@ def train(args):
     pred_data_x = pred_data_x.to(device)
     pred_h = model.init_hidden(pred_data_x.shape[0])
     pred, _ = model(pred_data_x, pred_h)
-    print("pred shape {}".format(pred.shape))
+    print("pred x {}".format(pred_data_x))
+    print("pred shape {}, pred {}".format(pred.shape, pred))
     pred_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
     pred_data_disp = pred_data_ext.copy()
     print("now find the ups")
@@ -227,7 +231,8 @@ def train(args):
     pred_data_x = pred_data_x.to(device)
     pred_h = model.init_hidden(pred_data_x.shape[0])
     pred, _ = model(pred_data_x, pred_h)
-    print("pred shape {}".format(pred.shape))
+    print("pred x {}".format(pred_data_x))
+    print("pred shape {}, pred {}".format(pred.shape, pred))
     pred_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
     pred_data_disp = pred_data_ext.copy()
     print("now find the ups")
@@ -238,7 +243,8 @@ def train(args):
     pred_data_x = pred_data_x.to(device)
     pred_h = model.init_hidden(pred_data_x.shape[0])
     pred, _ = model(pred_data_x, pred_h)
-    print("pred shape {}".format(pred.shape))
+    print("pred x {}".format(pred_data_x))
+    print("pred shape {}, pred {}".format(pred.shape, pred))
     pred_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
     pred_data_disp = pred_data_ext.copy()
     print("now find the ups")
