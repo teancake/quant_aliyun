@@ -20,7 +20,7 @@ class LSTM(nn.Module):
         self.output_size = output_size
         self.n_layers = n_layers
         self.hidden_dim = hidden_dim
-        # self.bn_in = nn.BatchNorm1d(sequence_length)
+        self.bn_in = nn.BatchNorm1d(sequence_length, affine=False)
         # self.bn_out = nn.BatchNorm1d(hidden_dim)
 
 
@@ -32,7 +32,7 @@ class LSTM(nn.Module):
         # print("x size {}".format(x.shape))
         batch_size = x.size(0)
         # print("x before bn {}".format(x))
-        # x = self.bn_in(x)
+        x = self.bn_in(x)
         # print("x after bn {}".format(x))
         lstm_out, hidden = self.lstm(x, hidden)
         # print("lstm_out size {}, hidden 0 size {}, hidden 1 size {}".format(lstm_out.shape, hidden[0].shape, hidden[1].shape))
