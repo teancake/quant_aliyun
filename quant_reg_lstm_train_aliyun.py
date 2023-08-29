@@ -197,7 +197,7 @@ if __name__ == "__main__":
     parser.add_argument('--n_layers', type=int, default=1, help='lstm number of layers')
     parser.add_argument('--drop_prob', type=float, default=0.2, help='lstm dropout probability')
     parser.add_argument('--hidden_dim', type=int, default=512, help='lstm hidden variable dimension')
-    parser.add_argument('--data_file_name', type=int, default="quant_reg_sequential_data.pkl", help='data file name')
+    parser.add_argument('--data_file_name', type=str, default="quant_reg_sequential_data.pkl", help='data file name')
 
     args = parser.parse_args()
     print("arguments {}".format(args))
