@@ -139,7 +139,7 @@ def train(args):
                 vinputs = vinputs.to(device)
                 vlabels = vlabels.to(device)
                 val_h = tuple([each.data for each in val_h])
-                voutputs, val_h = model(vinputs, val_h)
+                voutputs, _ = model(vinputs, val_h)
                 vloss = loss_fn(voutputs, vlabels)
                 val_losses.append(vloss.item())
         print("epoch {} train loss {}, val loss {}".format(epoch + 1, np.mean(train_losses), np.mean(val_losses)))
