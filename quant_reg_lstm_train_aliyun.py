@@ -117,7 +117,7 @@ def train(args):
             targets = targets.to(device)
             # print("input shape {}, target shape {}, h0 shape {}, h1 shape {}".format(inputs.shape, targets.shape, h[0].shape, h[1].shape))
             h = tuple([each.data for each in h])
-            outputs, h = model(inputs, h)
+            outputs, _ = model(inputs, h)
             # print("model outputs shape {}".format(outputs.shape))
             loss = loss_fn(outputs, targets)
 
