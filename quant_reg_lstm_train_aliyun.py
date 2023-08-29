@@ -144,19 +144,17 @@ def train(args):
                 val_losses.append(vloss.item())
         print("epoch {} train loss {}, val loss {}".format(epoch + 1, np.mean(train_losses), np.mean(val_losses)))
     #
-    # run_id = uuid.uuid1().hex
-    # model_name = "lstm"
-    # print("saving validation results")
+
     # test_data_x = test_data_x.to(device)
     # pred, _ = model(test_data_x, model.init_hidden(test_data_x.shape[0]))
     # test_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
     #
-    # print("now make predictions")
-    # pred_data_x = pred_data_x.to(device)
-    # pred_h = model.init_hidden(pred_data_x.shape[0])
-    # pred, _ = model(pred_data_x, pred_h)
-    # print("pred x {}".format(pred_data_x))
-    # print("pred shape {}, pred {}".format(pred.shape, pred))
+    print("now make predictions")
+    pred_data_x = pred_data_x.to(device)
+    pred_h = model.init_hidden(pred_data_x.shape[0])
+    pred, _ = model(pred_data_x, pred_h)
+    print("pred x {}".format(pred_data_x))
+    print("pred shape {}, pred {}".format(pred.shape, pred))
     # pred_data_ext["score"] = pred.squeeze().cpu().detach().numpy()
     # pred_data_disp = pred_data_ext.copy()
     # print("now find the ups")
