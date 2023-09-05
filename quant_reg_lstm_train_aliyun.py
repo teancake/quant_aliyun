@@ -90,7 +90,7 @@ def compute_precision_recall(ext, score, use_roc_label):
     ext["label_close_pred"] = label_close_pred
 
     label_roc = ext["label_roc"].values.astype(float)
-    label_close = ext["label_roc"].values.astype(float)
+    label_close = ext["label_close"].values.astype(float)
 
     print("#### roc pred {} ... {}\n roc label {} ... {}\n".format(label_roc_pred[0:10], label_roc_pred[-10:],
                                                                                   label_roc[0:10], label_roc[-10:]))
