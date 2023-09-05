@@ -186,8 +186,8 @@ def train(args):
                 # vloss = loss_fn(voutputs[:,-1], vlabels[:,-1])
                 # all predictions matters
                 vloss = loss_fn(voutputs, vlabels)
-                val_labels.extend(vlabels[:, -1].squeeze().detach().numpy())
-                val_outputs.extend(voutputs[:, -1].squeeze().detach().numpy())
+                val_labels.extend(vlabels[:, -1].squeeze().detach().cpu().numpy())
+                val_outputs.extend(voutputs[:, -1].squeeze().detach().cpu().numpy())
                 # print("vloss {}, mse {}".format(vloss, mean_squared_error(val_outputs, val_labels)))
                 val_losses.append(vloss.item())
         print("epoch {} train loss {}, val loss {}".format(epoch + 1, np.mean(train_losses), np.mean(val_losses)))
@@ -198,7 +198,7 @@ def train(args):
     model.eval()
     with torch.no_grad():
         pred, _ = model(test_data_x, model.init_hidden(test_data_x.shape[0]))
-        score = pred[:, -1].squeeze().detach().numpy()
+        score = pred[:, -1].squeeze().detach().cpu().numpy()
     compute_precision_recall(test_data_ext, score, use_roc_label)
     print(test_data_ext.head(10))
 
