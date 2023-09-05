@@ -194,10 +194,10 @@ def train(args):
         print("val_labels {} ... {}".format(val_labels[0:10], val_labels[-10:]))
         print("val_outputs {} ... {}".format(val_outputs[0:10], val_outputs[-10:]))
         metric.append([epoch + 1, np.mean(train_losses), np.mean(val_losses)])
-
+    print("metrics {}".format(metric))
     model.eval()
     with torch.no_grad():
-        pred, _ = model(test_data_x, model.init_hidden(test_data_x.shape[0]))
+        pred, _ = model(test_data_x.to(device), model.init_hidden(test_data_x.shape[0]))
         score = pred[:, -1].squeeze().detach().cpu().numpy()
     compute_precision_recall(test_data_ext, score, use_roc_label)
     print(test_data_ext.head(10))
