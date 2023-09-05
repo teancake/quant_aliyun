@@ -89,10 +89,16 @@ def compute_precision_recall(ext, score, use_roc_label):
     ext["label_roc_pred"] = label_roc_pred
     ext["label_close_pred"] = label_close_pred
 
-    pred = ext["label_roc_pred"].values.astype(float)
-    label = ext["label_roc"].values.astype(float)
-    print("pred {} ... {}, label {} ... {}, mse {}".format(pred[0:10], pred[-10:], label[0:10], label[-10:],
-                                                           mean_squared_error(label, pred)))
+    label_roc = ext["label_roc"].values.astype(float)
+    label_close = ext["label_roc"].values.astype(float)
+
+    print("#### roc pred {} ... {}\n roc label {} ... {}\n".format(label_roc_pred[0:10], label_roc_pred[-10:],
+                                                                                  label_roc[0:10], label_roc[-10:]))
+    print("#### roc mse {}, close mse {}".format(mean_squared_error(label_roc, label_roc_pred),
+                                              mean_squared_error(label_close, label_close_pred)))
+
+    pred = label_roc_pred
+    label = label_roc
     tp = len(label[np.logical_and(label > label_th, pred > th)])
     pp = len(pred[pred > th])
     p = len(label[label > th])
