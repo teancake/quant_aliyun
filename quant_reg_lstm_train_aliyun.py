@@ -17,12 +17,12 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class LSTM(nn.Module):
-    def __init__(self, input_size, output_size=1, hidden_dim=512, n_layers=1, drop_prob=0.0, sequence_length=1):
+    def __init__(self, input_size, output_size=1, hidden_dim=512, n_layers=1, drop_prob=0.0):
         super(LSTM, self).__init__()
         self.output_size = output_size
         self.n_layers = n_layers
         self.hidden_dim = hidden_dim
-        self.bn_in = nn.BatchNorm1d(sequence_length, affine=False)
+        # self.bn_in = nn.BatchNorm1d(sequence_length, affine=False)
         # self.bn_out = nn.BatchNorm1d(hidden_dim)
 
 
@@ -108,7 +108,6 @@ def compute_precision_recall(ext, score, use_roc_label):
 
 
 def train(args):
-    sequence_length = 15
     batch_size = args.batch_size
     learning_rate = args.lr
     n_layers = args.n_layers
@@ -136,7 +135,7 @@ def train(args):
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=1, drop_last=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=1, drop_last=True)
 
-    model = LSTM(input_size=train_data_x.shape[-1], output_size=train_data_y.shape[-1], hidden_dim=hidden_dim, n_layers=n_layers, drop_prob=drop_prob, sequence_length=sequence_length)
+    model = LSTM(input_size=train_data_x.shape[-1], output_size=train_data_y.shape[-1], hidden_dim=hidden_dim, n_layers=n_layers, drop_prob=drop_prob)
     model.to(device)
     loss_fn = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -200,6 +199,7 @@ def train(args):
         pred, _ = model(test_data_x.to(device), model.init_hidden(test_data_x.shape[0]))
         score = pred[:, -1].squeeze().detach().cpu().numpy()
     compute_precision_recall(test_data_ext, score, use_roc_label)
+    pd.set_option('display.max_columns', 20)
     print(test_data_ext.head(10))
 
 if __name__ == "__main__":
