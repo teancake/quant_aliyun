@@ -80,11 +80,11 @@ def compute_precision_recall(ext, score, use_roc_label):
 
     close = ext["close"].values.astype(float)
     if use_roc_label:
-        label_roc_pred = score
+        label_roc_pred = score / 100
         label_close_pred = np.add(close, np.multiply(close, label_roc_pred))
     else:
-        label_roc_pred = np.divide(np.subtract(score, close), close) * 100
         label_close_pred = score
+        label_roc_pred = np.divide(np.subtract(score, close), close) * 100
 
     ext["label_roc_pred"] = label_roc_pred
     ext["label_close_pred"] = label_close_pred
@@ -103,7 +103,6 @@ def compute_precision_recall(ext, score, use_roc_label):
     pp_ratio = pp / len(pred)
     print("roc threshold {}, precision {}, recall {}, p ratio {}, pp ratio {}".format(th, precision, recall, p_ratio,
                                                                                       pp_ratio))
-
 
 
 
