@@ -153,6 +153,8 @@ def train(args):
         for batch_num, data in enumerate(train_loader):
             optimizer.zero_grad()
             inputs, targets = data
+            inputs = inputs.to(device)
+            targets = targets.to(device)
             # print("input shape {}, target shape {}, h0 shape {}, h1 shape {}".format(inputs.shape, targets.shape, h[0].shape, h[1].shape))
             h = tuple([each.data for each in h])
             outputs, _ = model(inputs, h)
@@ -163,7 +165,7 @@ def train(args):
             loss.backward()
             optimizer.step()
             train_losses.append(loss.item())
-            if batch_num % 50 == 0:
+            if batch_num % 5 == 0:
                 print("Loss after batch {}: {}".format(batch_num, np.mean(train_losses)))
         print("Training process in epoch {} has finished. Evaluation started.".format(epoch + 1))
 
@@ -175,6 +177,8 @@ def train(args):
             val_h = model.init_hidden(batch_size)
             for i, vdata in enumerate(val_loader):
                 vinputs, vlabels = vdata
+                vinputs = vinputs.to(device)
+                vlabels = vlabels.to(device)
                 val_h = tuple([each.data for each in val_h])
                 voutputs, _ = model(vinputs, val_h)
                 # print("voutputs shape {}, vlabels shape {}".format(voutputs.shape, vlabels.shape))
