@@ -72,9 +72,11 @@ def train(args):
     epoch_num = args.epoch_num
     data_file_name = args.data_file_name
     use_roc_label = args.use_roc_label
+    model_name = args.model_name
 
 
     model_config = {
+        "model_name": model_name,
         "hidden_size": hidden_size,
         "num_layers": num_layers,
         "dropout": dropout,
@@ -104,13 +106,12 @@ def train(args):
     output_size = train_data_y.shape[-1]
     model_config["input_size"] = input_size
     model_config["output_size"] = output_size
-    model = get_model("ae_lstm", config=model_config)
+    model = get_model(model_config)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     print("model created {}".format(model))
 
     # Run the training loop
-    h = model.init_hidden(batch_size, method="normal")
     metric = []
     for epoch in range(0, epoch_num):
         print("Starting epoch {}".format(epoch + 1))
@@ -180,6 +181,8 @@ if __name__ == "__main__":
     parser.add_argument('--hidden_dim', type=int, default=512, help='lstm hidden variable dimension')
     parser.add_argument('--data_file_name', type=str, default="quant_reg_sequential_data.pkl", help='data file name')
     parser.add_argument('--use_roc_label', type=int, default=1, help='use roc label, 1 true, 0 false')
+    parser.add_argument('--model_name', type=str, default="lstm", help='model name')
+
 
 
     args = parser.parse_args()
