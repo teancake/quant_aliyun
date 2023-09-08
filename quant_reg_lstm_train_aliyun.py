@@ -141,13 +141,11 @@ def train(args):
         val_outputs = []
         model.eval()
         with torch.no_grad():
-            val_h = model.init_hidden(batch_size)
             for i, vdata in enumerate(val_loader):
                 vinputs, vlabels = vdata
                 vinputs = vinputs.to(device)
                 vlabels = vlabels.to(device)
-                val_h = tuple([each.data for each in val_h])
-                voutputs, _ = model(vinputs, val_h)
+                voutputs = model.get_outputs(vinputs)
                 # print("voutputs shape {}, vlabels shape {}".format(voutputs.shape, vlabels.shape))
                 # only the last day matters
                 # vloss = loss_fn(voutputs[:,-1], vlabels[:,-1])

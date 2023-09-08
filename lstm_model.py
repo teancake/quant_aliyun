@@ -67,11 +67,11 @@ class LSTM(BaseModel):
     def init_hidden(self, batch_size, method="zero"):
         weight = next(self.parameters()).data
         if method == "zero":
-            hidden = (weight.new(self.n_layers, batch_size, self.hidden_dim).zero_().to(device),
-                      weight.new(self.n_layers, batch_size, self.hidden_dim).zero_().to(device))
+            hidden = (weight.new(self.num_layers, batch_size, self.hidden_size).zero_().to(device),
+                      weight.new(self.num_layers, batch_size, self.hidden_size).zero_().to(device))
         else:
-            hidden = (weight.new(self.n_layers, batch_size, self.hidden_dim).normal_(0, 0.01).to(device),
-                      weight.new(self.n_layers, batch_size, self.hidden_dim).normal_(0, 0.01).to(device))
+            hidden = (weight.new(self.num_layers, batch_size, self.hidden_size).normal_(0, 0.01).to(device),
+                      weight.new(self.num_layers, batch_size, self.hidden_size).normal_(0, 0.01).to(device))
 
         return hidden
 
