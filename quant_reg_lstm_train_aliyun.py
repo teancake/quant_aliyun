@@ -160,9 +160,10 @@ def train(args):
         print("val_outputs {} ... {}".format(val_outputs[0:10], val_outputs[-10:]))
         metric.append([epoch + 1, np.mean(train_losses), np.mean(val_losses)])
     print("metrics {}".format(metric))
+
     model.eval()
     with torch.no_grad():
-        pred, _ = model(test_data_x.to(device), model.init_hidden(test_data_x.shape[0]))
+        pred = model.get_outputs(test_data_x.to(device))
         score = pred[:, -1].squeeze().detach().cpu().numpy()
     compute_precision_recall(test_data_ext, score, use_roc_label)
     pd.set_option('display.max_columns', 20)
