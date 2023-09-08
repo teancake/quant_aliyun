@@ -104,7 +104,7 @@ class AddGaussianNoise(object):
 
 
 class AeLstm(BaseModel):
-    def __init__(self, input_size=48, hidden_size=64, num_layers=1, dropout=0.0):
+    def __init__(self, input_size, hidden_size, num_layers=1, dropout=0.0):
         super(AeLstm, self).__init__()
 
         self.noise = AddGaussianNoise(std=0.2)
@@ -136,14 +136,14 @@ class AeLstm(BaseModel):
         ae_loss = nn.MSELoss()(ae_h2, h)
         # print("ae_h1 {}, ae_h2 {}, ae_loss {}, {}".format(ae_h1.shape, ae_h2.shape, ae_loss.shape, ae_loss))
         # print("_x shapes {}, ae_h1 shapes {}".format(_x.shape, ae_h1.shape))
-        # h = torch.cat([_x, ae_h1], dim=1)
+        h = torch.cat([_x, ae_h1], dim=-1)
         # print("h shapes {}".format(h.shape))
 
         h, _ = self.rnn(h)
         h = self.dropout(h)
-        h = torch.cat([_x, h], dim=1)
+        h = torch.cat([_x, h], dim=-1)
         y = self.head(h)
-        y = y.squeeze(1)
+        # y = y.squeeze(1)
         # print("y shape {}, _y shape {}".format(y.shape, _y.shape))
 
         if _y is None:
