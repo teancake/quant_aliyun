@@ -7,61 +7,12 @@ from torch.utils.data import DataLoader, TensorDataset
 from datetime import datetime, timedelta
 import torch.nn as nn
 
+from lstm_model import get_model, device
 import pickle
 
 import os
 
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
-class LSTM(nn.Module):
-    def __init__(self, input_size, output_size=1, hidden_dim=512, n_layers=1, drop_prob=0.0):
-        super(LSTM, self).__init__()
-        self.output_size = output_size
-        self.n_layers = n_layers
-        self.hidden_dim = hidden_dim
-        # self.bn_in = nn.BatchNorm1d(sequence_length, affine=False)
-        # self.bn_out = nn.BatchNorm1d(hidden_dim)
-
-
-        self.lstm = nn.LSTM(input_size, hidden_dim, n_layers, dropout=drop_prob, batch_first=True)
-        # self.dropout = nn.Dropout(drop_prob)
-        self.fc = nn.Linear(hidden_dim, output_size)
-
-    def forward(self, x, hidden):
-        # print("x size {}".format(x.shape))
-        batch_size = x.size(0)
-        # print("x before bn {}".format(x))
-        # x = self.bn_in(x)
-        # print("x after bn {}".format(x))
-        lstm_out, hidden = self.lstm(x, hidden)
-        # print("lstm_out size {}, hidden 0 size {}, hidden 1 size {}".format(lstm_out.shape, hidden[0].shape, hidden[1].shape))
-
-        # lstm_out = lstm_out.contiguous().view(-1, self.hidden_dim)
-        # lstm_out = self.bn_out(lstm_out)
-        # print("lstm_out before drop out {}".format(lstm_out.shape))
-        # out = self.dropout(lstm_out)
-        # print("out before fc {}".format(out.shape))
-        out = self.fc(lstm_out)
-        # print("out after fc {}".format(out.shape))
-
-        # out = out.view(batch_size, -1)
-        # out = out[:, -1]
-        # print("out after -1 {}".format(out.shape))
-        return out, hidden
-
-    def init_hidden(self, batch_size, method="zero"):
-        weight = next(self.parameters()).data
-        if method == "zero":
-            hidden = (weight.new(self.n_layers, batch_size, self.hidden_dim).zero_().to(device),
-                      weight.new(self.n_layers, batch_size, self.hidden_dim).zero_().to(device))
-        else:
-            hidden = (weight.new(self.n_layers, batch_size, self.hidden_dim).normal_(0, 0.01).to(device),
-                      weight.new(self.n_layers, batch_size, self.hidden_dim).normal_(0, 0.01).to(device))
-
-        return hidden
 
 
 
@@ -115,12 +66,20 @@ def compute_precision_recall(ext, score, use_roc_label):
 def train(args):
     batch_size = args.batch_size
     learning_rate = args.lr
-    n_layers = args.n_layers
-    drop_prob = args.drop_prob
-    hidden_dim = args.hidden_dim
+    num_layers = args.n_layers
+    dropout = args.drop_prob
+    hidden_size = args.hidden_dim
     epoch_num = args.epoch_num
     data_file_name = args.data_file_name
     use_roc_label = args.use_roc_label
+
+
+    model_config = {
+        "hidden_size": hidden_size,
+        "num_layers": num_layers,
+        "dropout": dropout,
+        "sequence_length": 5
+    }
 
     sequential_data = load_data_from_file("/mnt/data/{}".format(data_file_name))
     train_data_x, train_data_y, test_data_x, test_data_y, test_data_ext, pred_data_x, pred_data_ext = sequential_data
@@ -140,9 +99,13 @@ def train(args):
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=1, drop_last=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=1, drop_last=True)
 
-    model = LSTM(input_size=train_data_x.shape[-1], output_size=train_data_y.shape[-1], hidden_dim=hidden_dim, n_layers=n_layers, drop_prob=drop_prob)
-    model.to(device)
-    loss_fn = torch.nn.MSELoss()
+
+    input_size = train_data_x.shape[-1]
+    output_size = train_data_y.shape[-1]
+    model_config["input_size"] = input_size
+    model_config["output_size"] = output_size
+    model = get_model("ae_lstm", config=model_config)
+
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     print("model created {}".format(model))
 
@@ -160,12 +123,11 @@ def train(args):
             inputs = inputs.to(device)
             targets = targets.to(device)
             # print("input shape {}, target shape {}, h0 shape {}, h1 shape {}".format(inputs.shape, targets.shape, h[0].shape, h[1].shape))
-            h = tuple([each.data for each in h])
-            outputs, _ = model(inputs, h)
+            outputs = model.get_outputs(inputs)
             # print("model outputs shape {}".format(outputs.shape))
             # print("inputs {}, targets {}, outputs {}".format(inputs, targets, outputs))
             # loss = loss_fn(outputs[:,-1], targets[:,-1])
-            loss = loss_fn(outputs, targets)
+            loss = model.get_loss(outputs, targets)
             loss.backward()
             optimizer.step()
             train_losses.append(loss.item())
@@ -189,7 +151,7 @@ def train(args):
                 # only the last day matters
                 # vloss = loss_fn(voutputs[:,-1], vlabels[:,-1])
                 # all predictions matters
-                vloss = loss_fn(voutputs, vlabels)
+                vloss = model.get_loss(voutputs, vlabels)
                 val_labels.extend(vlabels[:, -1].squeeze().detach().cpu().numpy())
                 val_outputs.extend(voutputs[:, -1].squeeze().detach().cpu().numpy())
                 # print("vloss {}, mse {}".format(vloss, mean_squared_error(val_outputs, val_labels)))
