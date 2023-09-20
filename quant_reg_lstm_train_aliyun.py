@@ -106,6 +106,7 @@ def train(args):
     output_size = train_data_y.shape[-1]
     model_config["input_size"] = input_size
     model_config["output_size"] = output_size
+    print("model config {}".format(model_config))
     model = get_model(model_config)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
