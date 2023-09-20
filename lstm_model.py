@@ -19,6 +19,125 @@ class BaseModel(nn.Module, ABC):
     def get_loss(self, inputs, targets):
         pass
 
+#
+# class AttnLstm(BaseModel):
+#     def __init__(self):
+#         super(AttnLstm, self).__init__()
+#         self.seq_embedding_features = seq_embedding_features
+#         self.statistics_features = statistics_features
+#         self.seq_statistics_features = seq_statistics_features
+#
+#         self.seq_len = seq_len
+#
+#         self.seq_statistics_size = len(seq_statistics_features)
+#         self.statistics_size = len(statistics_features)
+#
+#         self.device = device
+#
+#         input_size = 0
+#         self.embeds = nn.ModuleDict()
+#
+#         for f in self.seq_embedding_features:
+#             embedding_layer = nn.Embedding(
+#                 self.seq_embedding_features[f]['nunique'],
+#                 self.seq_embedding_features[f]['embedding_dim'])
+#
+#             pretrained_weight = np.array(
+#                 self.seq_embedding_features[f]['pretrained_embedding'])
+#             embedding_layer.weight.data.copy_(
+#                 torch.from_numpy(pretrained_weight))
+#             embedding_layer.weight.requires_grad = False
+#             self.embeds[f] = embedding_layer
+#
+#         # LSTM 层
+#         for f in self.seq_embedding_features:
+#             input_size += seq_embedding_features[f]['embedding_dim']
+#         input_size += self.seq_statistics_size
+#
+#         self.lstm = nn.LSTM(input_size,
+#                             128,
+#                             batch_first=True,
+#                             num_layers=2,
+#                             bidirectional=True)
+#
+#         # Attention 层
+#         attention_input_size = 128 * 2
+#         self.attention_output_size = attention_input_size
+#         self.Q_weight = nn.Linear(attention_input_size,
+#                                   self.attention_output_size)
+#         self.K_weight = nn.Linear(attention_input_size,
+#                                   self.attention_output_size)
+#         self.V_weight = nn.Linear(attention_input_size,
+#                                   self.attention_output_size)
+#
+#         # DNN 层
+#         dnn_input_size = self.attention_output_size + attention_input_size + self.statistics_size
+#
+#         self.linears = nn.Sequential(nn.Linear(dnn_input_size, 1024),
+#                                      nn.LeakyReLU(), nn.BatchNorm1d(1024),
+#                                      nn.Linear(1024, 256), nn.LeakyReLU(),
+#                                      nn.BatchNorm1d(256), nn.Linear(256, 64),
+#                                      nn.LeakyReLU(), nn.BatchNorm1d(64),
+#                                      nn.Linear(64, 16), nn.LeakyReLU(),
+#                                      nn.BatchNorm1d(16), nn.Dropout(0.1))
+#
+#         # age 输出层
+#         self.age_output = nn.Linear(16, 10)
+#
+#     def forward(self, seq_id_list, statistics_input, statistics_seq_input_list,
+#                 seq_lengths):
+#         batch_size = seq_id_list[0].shape[0]
+#
+#         # 序列 id Embedding
+#         seq_feature_list = []
+#         for i, seq_id in enumerate(seq_id_list):
+#             feature_name = list(self.seq_embedding_features.keys())[i]
+#             embeddings = self.embeds[feature_name](seq_id.to(self.device))
+#             seq_feature_list.append(embeddings)
+#
+#         seq_input = torch.cat(seq_feature_list, 2)
+#         seq_input = F.dropout2d(seq_input, 0.1, training=self.training)
+#
+#         # LSTM
+#         seq_output, _ = self.lstm(seq_input)
+#         # mask padding
+#         mask = torch.zeros(seq_output.shape).to(self.device)
+#         for idx, seqlen in enumerate(seq_lengths):
+#             mask[idx, :seqlen] = 1
+#
+#         seq_output = seq_output * mask
+#         lstm_output_max, _ = torch.max(seq_output, dim=1)
+#
+#         # Attention
+#         Q = self.Q_weight(seq_output)
+#         K = self.K_weight(seq_output)
+#         V = self.V_weight(seq_output)
+#
+#         tmp = torch.bmm(Q, K.transpose(1, 2))
+#         tmp = tmp / np.sqrt(self.attention_output_size)
+#         w = torch.softmax(tmp, 2)
+#         att_output = torch.bmm(w, V)
+#         att_output = att_output * mask
+#         att_max_output, _ = torch.max(att_output, dim=1)
+#
+#         # 拼接统计特征
+#         cat_output = torch.cat(
+#             [att_max_output, lstm_output_max, statistics_input], 1)
+#
+#         # DNN
+#         dnn_output = self.linears(cat_output)
+#         age_output = self.age_output(dnn_output)
+#
+#         return age_output
+#
+#
+# def get_loss(self, inputs, targets):
+#         pass
+#
+#     def get_outputs(self, inputs):
+#         pass
+#
+#
 
 class LSTM(BaseModel):
     def __init__(self, input_size, output_size=1, hidden_size=512, num_layers=1, dropout=0.0):
