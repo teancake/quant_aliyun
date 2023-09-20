@@ -21,12 +21,13 @@ class BaseModel(nn.Module, ABC):
 
 
 class LSTM(BaseModel):
-    def __init__(self, input_size, output_size=1, hidden_size=512, num_layers=1, dropout=0.0, sequence_length=1):
+    def __init__(self, input_size, output_size=1, hidden_size=512, num_layers=1, dropout=0.0):
         super(LSTM, self).__init__()
         self.output_size = output_size
         self.num_layers = num_layers
         self.hidden_size = hidden_size
         # self.bn_in = nn.BatchNorm1d(sequence_length, affine=False)
+        self.multihead_attn = nn.MultiheadAttention(embed_dim=hidden_size, num_heads=4)
 
         self.head = nn.Sequential(
             nn.Linear(hidden_size, hidden_size),
@@ -51,13 +52,16 @@ class LSTM(BaseModel):
             lstm_out, hidden = self.lstm(x)
         else:
             lstm_out, hidden = self.lstm(x, hidden)
+
+
         # print("lstm_out size {}, hidden 0 size {}, hidden 1 size {}".format(lstm_out.shape, hidden[0].shape, hidden[1].shape))
 
         # lstm_out = lstm_out.contiguous().view(-1, self.hidden_dim)
         # lstm_out = self.bn_out(lstm_out)
         # print("lstm_out before drop out {}".format(lstm_out.shape))
-        # out = self.dropout(lstm_out)
-        out = lstm_out
+        attn_out, attn_weight = self.multihead_attn(lstm_out, lstm_out, lstm_out)
+        out = attn_out
+        # out = lstm_out
         # print("out before fc {}".format(out.shape))
         out = self.fc(out)
         # out = self.head(out)
@@ -171,10 +175,9 @@ def get_model(config) -> BaseModel:
         input_size = config.get("input_size")
         output_size = config.get("output_size")
         hidden_size = config.get("hidden_size", 32)
-        sequence_length = config.get("sequence_length", 5)
         num_layers = config.get("num_layers", 1)
         dropout = config.get("dropout", 0.2)
-        model = LSTM(input_size=input_size, output_size=output_size, hidden_size=hidden_size, num_layers=num_layers, dropout=dropout, sequence_length=sequence_length)
+        model = LSTM(input_size=input_size, output_size=output_size, hidden_size=hidden_size, num_layers=num_layers, dropout=dropout)
     elif model_name == "ae_lstm":
         input_size = config.get("input_size")
         output_size = config.get("output_size")
