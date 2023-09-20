@@ -21,6 +21,7 @@ class BaseModel(nn.Module, ABC):
 
 #
 # class AttnLstm(BaseModel):
+# https://github.com/LogicJake/Tencent_Ads_Algo_2020_TOP12/blob/master/README.md
 #     def __init__(self):
 #         super(AttnLstm, self).__init__()
 #         self.seq_embedding_features = seq_embedding_features
@@ -50,10 +51,6 @@ class BaseModel(nn.Module, ABC):
 #             self.embeds[f] = embedding_layer
 #
 #         # LSTM 层
-#         for f in self.seq_embedding_features:
-#             input_size += seq_embedding_features[f]['embedding_dim']
-#         input_size += self.seq_statistics_size
-#
 #         self.lstm = nn.LSTM(input_size,
 #                             128,
 #                             batch_first=True,
@@ -61,14 +58,9 @@ class BaseModel(nn.Module, ABC):
 #                             bidirectional=True)
 #
 #         # Attention 层
-#         attention_input_size = 128 * 2
-#         self.attention_output_size = attention_input_size
-#         self.Q_weight = nn.Linear(attention_input_size,
-#                                   self.attention_output_size)
-#         self.K_weight = nn.Linear(attention_input_size,
-#                                   self.attention_output_size)
-#         self.V_weight = nn.Linear(attention_input_size,
-#                                   self.attention_output_size)
+
+#         # categorical feature embedding 层
+
 #
 #         # DNN 层
 #         dnn_input_size = self.attention_output_size + attention_input_size + self.statistics_size

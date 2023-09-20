@@ -25,43 +25,30 @@ def load_data_from_file(file_path):
 
 
 
-def compute_precision_recall(ext, score, use_roc_label):
-    th = 5
-    label_th = 2
+def compute_precision_recall_updated(label, pred):
+    print("#### label mse {}".format(mean_squared_error(label, pred)))
 
-    close = ext["close"].values.astype(float)
-    if use_roc_label:
-        label_roc_pred = score / 100
-        label_close_pred = np.add(close, np.multiply(close, label_roc_pred))
-    else:
-        label_close_pred = score
-        label_roc_pred = np.divide(np.subtract(score, close), close) * 100
+    auc_curve = []
+    for th in range(-10, 10):
+        label_th = th
+        tp = len(label[np.logical_and(label >= label_th, pred >= th)])
+        pp = len(pred[pred >= th])
+        p = len(label[label >= th])
+        n = len(label[label < th])
+        fp = len(label[np.logical_and(label < label_th, pred >= th)])
 
-    ext["label_roc_pred"] = label_roc_pred
-    ext["label_close_pred"] = label_close_pred
-
-    label_roc = ext["label_roc"].values.astype(float)
-    label_close = ext["label_close"].values.astype(float)
-
-    print("#### roc pred {} ... {}\n roc label {} ... {}\n".format(label_roc_pred[0:10], label_roc_pred[-10:],
-                                                                                  label_roc[0:10], label_roc[-10:]))
-    print("#### roc mse {}, close mse {}".format(mean_squared_error(label_roc, label_roc_pred),
-                                              mean_squared_error(label_close, label_close_pred)))
-
-    pred = label_roc_pred
-    label = label_roc
-    tp = len(label[np.logical_and(label > label_th, pred > th)])
-    pp = len(pred[pred > th])
-    p = len(label[label > th])
-
-    precision = tp / pp if pp > 0 else 0
-    recall = tp / p if p > 0 else 0
-    p_ratio = p/len(label)
-    pp_ratio = pp / len(pred)
-    print("roc threshold {}, precision {}, recall {}, p ratio {}, pp ratio {}".format(th, precision, recall, p_ratio,
-                                                                                      pp_ratio))
-
-
+        precision = tp / pp if pp > 0 else 0
+        recall = tp / p if p > 0 else 0
+        p_ratio = p/len(label)
+        pp_ratio = pp / len(pred)
+        tpr = recall
+        fpr = fp / n if n > 0 else 0
+        loss_p = len(label[np.logical_and(label < -label_th, pred >= th)]) / pp if pp > 0 else 0
+        print("threshold {}, precision {}, loss probability {}, recall {}, p ratio {}, pp ratio {}, pred len {}, label len {}, p cnt {}, pp cnt {}".format(th, precision, loss_p, recall, p_ratio,
+                                                                                      pp_ratio, len(pred), len(label), p, pp))
+        auc_curve.append([th, precision, recall, tpr, fpr, pp_ratio])
+    auc_curve = np.array(auc_curve)
+    # print(auc_curve)
 
 def train(args):
     batch_size = args.batch_size
@@ -120,21 +107,18 @@ def train(args):
         train_losses = []
         model.train(True)
         for batch_num, data in enumerate(train_loader):
-            optimizer.zero_grad()
+
             inputs, targets = data
             inputs = inputs.to(device)
             targets = targets.to(device)
-            print("input shape {}, target shape {}".format(inputs.shape, targets.shape))
-            outputs = model.get_outputs(inputs)
-            print("model outputs shape {}".format(outputs.shape))
-            # print("inputs {}, targets {}, outputs {}".format(inputs, targets, outputs))
-            # loss = loss_fn(outputs[:,-1], targets[:,-1])
-            loss = model.get_loss(outputs, targets)
+            # print("input shape {}, target shape {}, h0 shape {}, h1 shape {}".format(inputs.shape, targets.shape, h[0].shape, h[1].shape))
+            loss = model.get_loss(inputs, targets)
+            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
             train_losses.append(loss.item())
-            if batch_num % 5 == 0:
-                print("Loss after batch {}: {}".format(batch_num, np.mean(train_losses)))
+            if batch_num + 1 % 50 == 0:
+                print("Loss after batch {}: {}".format(batch_num + 1, np.mean(train_losses)))
         print("Training process in epoch {} has finished. Evaluation started.".format(epoch + 1))
 
         val_losses = []
@@ -151,7 +135,7 @@ def train(args):
                 # only the last day matters
                 # vloss = loss_fn(voutputs[:,-1], vlabels[:,-1])
                 # all predictions matters
-                vloss = model.get_loss(voutputs, vlabels)
+                vloss = model.get_loss(vinputs, vlabels)
                 val_labels.extend(vlabels[:, -1].squeeze().detach().cpu().numpy())
                 val_outputs.extend(voutputs[:, -1].squeeze().detach().cpu().numpy())
                 # print("vloss {}, mse {}".format(vloss, mean_squared_error(val_outputs, val_labels)))
@@ -162,13 +146,38 @@ def train(args):
         metric.append([epoch + 1, np.mean(train_losses), np.mean(val_losses)])
     print("metrics {}".format(metric))
 
+
+    print("validation on the latest model parameters.")
     model.eval()
     with torch.no_grad():
         pred = model.get_outputs(test_data_x.to(device))
-        score = pred[:, -1].squeeze().detach().cpu().numpy()
-    compute_precision_recall(test_data_ext, score, use_roc_label)
+        pred = pred[:, -1].squeeze().detach().cpu().numpy()
+
+
+    label_name = "label_roc"
+    label_name_pred = "{}_pred".format(label_name)
+    test_data_ext[label_name_pred] = pred
+    label = test_data_ext[label_name].values.astype(float)
+    compute_precision_recall_updated(label, pred)
+
     pd.set_option('display.max_columns', 20)
     print(test_data_ext.head(10))
+    # print(test_data_y[0:10])
+
+
+    print("now make predictions")
+    model.eval()
+    with torch.no_grad():
+        pred = model.get_outputs(pred_data_x.to(device))
+        pred = pred[:, -1].squeeze().detach().cpu().numpy()
+
+    # quant_data_util.fill_ext_with_predictions(pred_data_ext, pred, use_roc_label)
+    pred_data_ext[label_name_pred] = pred
+    print("now only use the latest date and find the ups")
+    pred_data_ext = pred_data_ext[pred_data_ext["日期"] == pred_data_ext["日期"].max()]
+    pred_data_ext.sort_values(by=[label_name_pred], inplace=True, ascending=False)
+
+    print(pred_data_ext.head(20).to_string())
 
 if __name__ == "__main__":
     import argparse
